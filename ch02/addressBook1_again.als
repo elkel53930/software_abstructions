@@ -7,7 +7,7 @@ pred show (b: Book){
 	#b.addr > 1
 	#Name.(b.addr) > 1
 	}
-//run show for 3 but 1 Book
+run show for 3 but 1 Book
 
 pred add (b, b': Book, n: Name, a: Addr) {b'.addr = b.addr + n -> a}
 pred del (b, b': Book, n: Name) {b'.addr = b.addr - n -> Addr}
