@@ -79,7 +79,15 @@ pred progress {
 			some p: Process | not skip [t, t', p]
 	}
 
-pred looplessPath {no disj t, t': Time | toSend.t = toSend.t'}
+// トレース中で各状態を高々一回しか通らない
+pred looplessPath {
+	// toSendが一致するような、異なる２つの時刻は存在しない
+	no disj t, t': Time | toSend.t = toSend.t'
+	}
+// この述語は12 Timeで実行するとインスタンスが見つかる。
+// 13 Timeだとインスタンスが見つからない。すなわち、時間が13以上だと
+// 必ずループが発生する
+// なので3つのProcessに対しては、Timeは12あれば十分(解析が完全)だといえる
 run looplessPath for 13 Time, 3 Process
 
 pred show {
