@@ -16,6 +16,9 @@ assert AtLeastOneElected |
 check AtLeastOneElected for 3 but 7 Time
 ```
 
+-> AtLeastOneElectedで**しか**使わないなら、factにしてはいけない。
+predであるべき。
+
 としてもcounterexampleは見つからなかった。
 
 ## p176 上の話はスコープ単調性を壊すということ？だとしたら問題になる？
