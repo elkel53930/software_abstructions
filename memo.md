@@ -36,4 +36,8 @@ predであるべき。
 
 ## p180 宿泊客は与えられた時刻において鍵の集合を持つ
 
-？
+p263
+
+`Key -> Time`は`Key set -> set Time`の略である。
+Keyから見てTimeは任意個。
+Timeから見てKeyは任意個。
