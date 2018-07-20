@@ -27,7 +27,7 @@ one sig FrontDesk {
 	// loneは初期化前の客室を表現するため
 	lastKey: (Room -> lone Key) -> Time,
 	// 客室を宿泊客に対応付ける関係
-	occupant: (Room -> Guiest) -> Time
+	occupant: (Room -> Guest) -> Time
 	}
 
 // 宿泊客は、ある時刻における鍵を持つ
@@ -42,7 +42,7 @@ fun nextKey(k: Key, ks: set Key): lone Key {
 
 pred init (t: Time) {
 	// 鍵を持つ客はいない
-	no Guiest.keys.t
+	no Guest.keys.t
 	// フロントの宿泊簿は、すべての客室が空いていることを示す
 	no FrontDesk.occupant.t
 	// フロントの「最新の鍵」と各客室の「現在の鍵」は一致している
@@ -58,7 +58,7 @@ pred entry (t, t': Time, g: Guest, r: Room, k: Key) {
 		// カードの鍵と、現在の鍵が一致して、次の時間における錠前の鍵は変化しない
 		(k = ck.t and ck.t' = ck.t) or
 		// カードの鍵はと次の鍵が一致して、次の時間における錠前の鍵は変化する
-		(k = nextKey [ck.t, r.keys] and ct.t' = k)
+		(k = nextKey [ck.t, r.keys] and ck.t' = k)
 	// フレーム条件 : 状態のどの部分が変化しないかを示す
 	// 他の客室は変化しない
 	noRoomChangeExcept [t, t', r]
@@ -130,16 +130,33 @@ fact Traces {
 		// 入室、チェックイン、チェックアウトのいずれかが発生する
 		some g: Guest, r: Room, k: Key |
 			entry [t,t',g,r,k]
-			or chechin [t,t',g,r,k]
+			or checkin [t,t',g,r,k]
 			or checkout [t,t',g]
 	}
 
+// 宿泊客のチェックインと入室の間には一切イベントが起こらない
+fact NoIntervening {
+	// tには、最後の時刻以外が含まれる。最後から二番目の時刻も含まれることに注意
+	all t: Time - last | let t' = t.next, t" = t'.next |
+		all g: Guest, r: Room, k: Key |
+			// tからt'への遷移でcheckinが起きたら、
+			// t'からt"への遷移でentryが起きる
+			// もしくはt'が最後の時刻なので、t"が存在しない
+			checkin [t,t',g,r,k]
+				=> ( entry [t',t",g,r,k] or no t" )
+	}
+
+// 許可されていない入室が起こらない
 assert NoBadEntry {
 	all t: Time, r: Room, g: Guest, k: Key |
 		let o = FrontDesk.occupant.t [r] |
+			// ある時刻に宿泊客gが客室rに鍵kで入るとき、
+			// 時刻t、部屋rの宿泊簿が存在すれば、
+			// 宿泊客gは宿泊簿に含まれる
 			entry [t, t.next, g, r, k] and some o => g in o
 	}
 
-
+//check NoBadEntry for 3 but 3 Room, 3 Guest, 7 Time
+check NoBadEntry for 5 but 20 Time
 
 
