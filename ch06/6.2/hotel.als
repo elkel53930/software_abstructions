@@ -103,18 +103,43 @@ pred checkin (t, t': Time, g: Guest, r: Room, k: Key) {
 	// 宿泊客に鍵が渡される
 	g.keys.t' = g.keys.t + k
 	let occ = FrontDesk.occupant {
+		// 事前条件
 		// 部屋が空いている
 		no occ.t [r]
-		// 部屋に宿泊客が紐づけられる
+		// 事後条件
+		// 部屋に宿泊客を紐づく
 		occ.t' = occ.t + r -> g
 		}
 	let lk = FrontDesk.lastKey {
-		lk.t' = lk.t ++ r -> k
+		// 新しい鍵は、最新の鍵の、次の鍵
 		k = nextKey [lk.t[r], r.keys]
+		// フロントの記録が次の鍵に上書きされる
+		lk.t' = lk.t ++ r -> k
 		}
+	// すべての客室は変化しない
 	noRoomChangeExcept [t, t', none]
+	// チェックインした宿泊客以外の宿泊客は変化しない
 	noGuestChangeExcept [t, t', g]
 	}
+
+fact Traces {
+	// 最初の時刻ではinitが成り立つ
+	first.init
+	// すべてのtからt'への時間遷移において
+	all t: Time - last | let t' = t.next |
+		// 入室、チェックイン、チェックアウトのいずれかが発生する
+		some g: Guest, r: Room, k: Key |
+			entry [t,t',g,r,k]
+			or chechin [t,t',g,r,k]
+			or checkout [t,t',g]
+	}
+
+assert NoBadEntry {
+	all t: Time, r: Room, g: Guest, k: Key |
+		let o = FrontDesk.occupant.t [r] |
+			entry [t, t.next, g, r, k] and some o => g in o
+	}
+
 
 
 
